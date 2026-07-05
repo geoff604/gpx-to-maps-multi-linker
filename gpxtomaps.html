@@ -34,6 +34,13 @@
             </button>
         </div>
 
+        <div class="flex items-center justify-center space-x-2 bg-slate-900/40 border border-slate-700/50 rounded-xl p-3 max-w-xs mx-auto">
+            <input type="checkbox" id="chkCycling" checked class="w-4 h-4 rounded bg-slate-700 border-slate-600 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800 accent-blue-500 cursor-pointer" />
+            <label for="chkCycling" class="text-xs font-medium text-slate-300 select-none cursor-pointer">
+                Default to Cycling/Bike directions
+            </label>
+        </div>
+
         <div id="errorBanner" class="hidden bg-rose-950/50 border border-rose-800 text-rose-300 rounded-xl p-4 text-xs flex items-start space-x-2">
             <span id="errorMessage" class="font-mono"></span>
         </div>
@@ -94,11 +101,15 @@
         const btnCopy = document.getElementById('btnCopy');
         const btnLaunch = document.getElementById('btnLaunch');
         const btnSample = document.getElementById('btnSample');
+        const chkCycling = document.getElementById('chkCycling');
 
         const metaRaw = document.getElementById('metaRaw');
         const metaMapped = document.getElementById('metaMapped');
         const metaLength = document.getElementById('metaLength');
         const badgeStatus = document.getElementById('badgeStatus');
+
+        // Global cache to hold the last compiled dataset for instantaneous toggle updates
+        let globalCoordinates = null;
 
         // Drag & Drop Listeners
         dropZone.addEventListener('click', () => fileInput.click());
@@ -121,6 +132,13 @@
                     btnCopy.classList.replace('bg-emerald-600', 'bg-blue-600');
                 }, 1500);
             });
+        });
+
+        // Toggle handling to instantly update link on user option click
+        chkCycling.addEventListener('change', () => {
+            if (globalCoordinates) {
+                buildSlashSeparatedLink(globalCoordinates);
+            }
         });
 
         // Load Sandbox Demo Data Set
@@ -188,6 +206,7 @@
                     throw new Error("Data Check Failure: No valid coordinate objects extracted from file markup attributes.");
                 }
 
+                globalCoordinates = coordinates;
                 buildSlashSeparatedLink(coordinates);
 
             } catch (err) {
@@ -385,8 +404,11 @@
             // Format a trailing suffix matrix telling the app where to center and focus the map frame at zoom level 14.
             const cameraHint = `/@${firstPoint.lat.toFixed(5)},${firstPoint.lon.toFixed(5)},14z`;
 
+            // Conditionally append the navigation mode parameter suffix string (Bicycling/Cycling)
+            const transportModeSuffix = chkCycling.checked ? '/data=!4m2!4m1!3e1' : '';
+
             // Compile the data pieces into a complete, working Google Maps universal directional query URL.
-            const finalizedMapsUrl = `https://www.google.com/maps/dir/${urlPayloadString}${cameraHint}`;
+            const finalizedMapsUrl = `https://www.google.com/maps/dir/${urlPayloadString}${cameraHint}${transportModeSuffix}`;
 
             // Inject the finalized URL into our screen textbox elements for copying.
             urlOutputField.value = finalizedMapsUrl;
