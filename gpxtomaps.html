@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Resolution GPX to Google Maps Linker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 antialiased font-sans min-h-screen flex flex-col justify-center items-center p-4">
+
+    <div class="max-w-2xl w-full bg-slate-800 border border-slate-700 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+        
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">GPX to Google Maps Multi-Linker</h1>
+            <p class="text-sm text-slate-400">Generates path-based links using the slash-separated multi-stop routing format.</p>
+        </div>
+
+        <div id="dropZone" class="border-2 border-dashed border-slate-600 bg-slate-900/50 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-950/10 transition-all flex flex-col items-center justify-center space-y-3 group">
+            <input type="file" id="fileInput" accept=".gpx" class="hidden" />
+            <div class="p-4 bg-slate-800 rounded-full text-blue-400 border border-slate-700 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold text-sm text-slate-200">Drag & drop your track file here</p>
+                <p class="text-xs text-slate-500 mt-1">Parses high-density coordinates entirely inside your browser cache</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button id="btnSample" class="text-xs text-slate-400 hover:text-blue-400 underline transition-colors cursor-pointer">
+                Or generate a link using sample route data
+            </button>
+        </div>
+
+        <div id="errorBanner" class="hidden bg-rose-950/50 border border-rose-800 text-rose-300 rounded-xl p-4 text-xs flex items-start space-x-2">
+            <span id="errorMessage" class="font-mono"></span>
+        </div>
+
+        <section id="outputPanel" class="hidden space-y-4 pt-2 border-t border-slate-700">
+            
+            <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
+                <span>Output Link</span>
+                <span id="badgeStatus" class="px-2 py-0.5 rounded-sm"></span>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="urlOutputField" readonly class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-xs font-mono text-slate-300 select-all outline-none focus:border-slate-500 flex-1 min-w-0" />
+                <button id="btnCopy" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-3 rounded-xl transition-colors cursor-pointer shrink-0">
+                    Copy Link
+                </button>
+            </div>
+
+            <a id="btnLaunch" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center bg-slate-100 hover:bg-white text-slate-900 font-bold text-sm px-5 py-3.5 rounded-xl transition-all shadow-lg cursor-pointer space-x-2">
+                <span>Launch Directly in Google Maps</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+            </a>
+
+            <div class="bg-slate-900/40 border border-slate-700/60 rounded-xl p-4 grid grid-cols-3 gap-2 text-center text-xs">
+                <div>
+                    <span class="block text-slate-500 font-medium mb-0.5">Raw Coordinates</span>
+                    <span id="metaRaw" class="font-mono font-bold text-slate-300">—</span>
+                </div>
+                <div>
+                    <span class="block text-slate-500 font-medium mb-0.5">URL Segments</span>
+                    <span id="metaMapped" class="font-mono font-bold text-slate-300">—</span>
+                </div>
+                <div>
+                    <span class="block text-slate-500 font-medium mb-0.5">Link Size</span>
+                    <span id="metaLength" class="font-mono font-bold text-slate-300">—</span>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const errorBanner = document.getElementById('errorBanner');
+        const errorMessage = document.getElementById('errorMessage');
+        const outputPanel = document.getElementById('outputPanel');
+        const urlOutputField = document.getElementById('urlOutputField');
+        const btnCopy = document.getElementById('btnCopy');
+        const btnLaunch = document.getElementById('btnLaunch');
+        const btnSample = document.getElementById('btnSample');
+
+        const metaRaw = document.getElementById('metaRaw');
+        const metaMapped = document.getElementById('metaMapped');
+        const metaLength = document.getElementById('metaLength');
+        const badgeStatus = document.getElementById('badgeStatus');
+
+        // Drag & Drop Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-950/10'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-blue-500', 'bg-blue-950/10'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-blue-500', 'bg-blue-950/10');
+            if (e.dataTransfer.files.length > 0) handleIncomingFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleIncomingFile(e.target.files[0]); });
+
+        btnCopy.addEventListener('click', () => {
+            navigator.clipboard.writeText(urlOutputField.value).then(() => {
+                const prevText = btnCopy.textContent;
+                btnCopy.textContent = "✓ Copied";
+                btnCopy.classList.replace('bg-blue-600', 'bg-emerald-600');
+                setTimeout(() => {
+                    btnCopy.textContent = prevText;
+                    btnCopy.classList.replace('bg-emerald-600', 'bg-blue-600');
+                }, 1500);
+            });
+        });
+
+        // Load Sandbox Demo Data Set
+        btnSample.addEventListener('click', () => {
+            const mockGPX = `<?xml version="1.0" encoding="UTF-8"?>
+            <gpx version="1.1" creator="Visualizer Framework" xmlns="http://www.topografix.com/GPX/1/1">
+                <trk><trkseg>
+                    <trkpt lat="49.248460" lon="-123.101090"></trkpt>
+                    <trkpt lat="49.248985" lon="-123.101060"></trkpt>
+                    <trkpt lat="49.249510" lon="-123.101030"></trkpt>
+                    <trkpt lat="49.249525" lon="-123.102095"></trkpt>
+                    <trkpt lat="49.249540" lon="-123.103160"></trkpt>
+                    <trkpt lat="49.250990" lon="-123.104910"></trkpt>
+                    <trkpt lat="49.251000" lon="-123.107150"></trkpt>
+                    <trkpt lat="49.251030" lon="-123.108590"></trkpt>
+                    <trkpt lat="49.251580" lon="-123.120190"></trkpt>
+                    <trkpt lat="49.251720" lon="-123.127050"></trkpt>
+                </trkseg></trk>
+            </gpx>`;
+            compileGPXPayload(mockGPX);
+        });
+
+        function handleIncomingFile(file) {
+            if (!file.name.endsWith('.gpx') && file.type !== "application/gpx+xml") {
+                triggerError("Format Rejection: The input file parsed must be a standard structural tracking file (.gpx).");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => compileGPXPayload(e.target.result);
+            reader.onerror = () => triggerError("System Exception reading local text stream buffers.");
+            reader.readAsText(file);
+        }
+
+        function triggerError(msg) {
+            errorMessage.textContent = msg;
+            errorBanner.classList.remove('hidden');
+            outputPanel.classList.add('hidden');
+        }
+
+        function compileGPXPayload(xmlRawText) {
+            errorBanner.classList.add('hidden');
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlRawText, "text/xml");
+                if (doc.querySelector("parsererror")) {
+                    throw new Error("Syntax Error: Unable to extract DOM components from target file text layers.");
+                }
+
+                const coordinates = [];
+                const searchTags = ["trkpt", "rtept", "wpt"];
+                
+                for (const tag of searchTags) {
+                    const elements = doc.getElementsByTagName(tag);
+                    for (let i = 0; i < elements.length; i++) {
+                        const lat = parseFloat(elements[i].getAttribute("lat"));
+                        const lon = parseFloat(elements[i].getAttribute("lon"));
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            coordinates.push({ lat, lon });
+                        }
+                    }
+                    if (coordinates.length > 0) break; 
+                }
+
+                if (coordinates.length === 0) {
+                    throw new Error("Data Check Failure: No valid coordinate objects extracted from file markup attributes.");
+                }
+
+                buildSlashSeparatedLink(coordinates);
+
+            } catch (err) {
+                triggerError(err.message);
+            }
+        }
+
+        function buildSlashSeparatedLink(points) {
+            // Save the total number of items loaded from the GPX file for metric displays.
+            const totalRawCount = points.length;
+            
+            // ============================================================================
+            // PASS 1: DISTANCE PROXIMITY FILTER (THE HAVERSINE FORMULA)
+            // Purpose: Remove points that sit too close to each other (less than 15 meters).
+            // This eliminates data noise caused by waiting at red lights or GPS precision jitter.
+            // ============================================================================
+            
+            // Set up our minimum requirement: a point must be at least 15 meters away from the last saved milestone.
+            const minDistanceThresholdMeters = 15; 
+            // Create a temporary array that will house our cleaned, spaced-out list of coordinates.
+            let filteredPoints = [];
+            
+            if (points.length > 0) {
+                // Always keep the very first coordinate from the file as our official start location.
+                filteredPoints.push(points[0]);
+                
+                // Start a loop checking every point in sequence, beginning with the second one (index 1).
+                for (let i = 1; i < points.length; i++) {
+                    // Grab the last coordinate we successfully approved and stored in our clean list.
+                    const lastKept = filteredPoints[filteredPoints.length - 1];
+                    // Grab the current raw coordinate we are evaluating from the loop.
+                    const current = points[i];
+                    
+                    // The Haversine Formula converts spherical coordinates to surface distance.
+                    // R represents the mean radius of the Earth in meters.
+                    const R = 6371000; 
+                    
+                    // Convert the change in Latitude from degrees to Radians so computers can parse it mathematically.
+                    const dLat = (current.lat - lastKept.lat) * Math.PI / 180;
+                    // Convert the change in Longitude from degrees to Radians similarly.
+                    const dLon = (current.lon - lastKept.lon) * Math.PI / 180;
+                    
+                    // Calculate the square of half the straight-line chord length between the points.
+                    // The Math.cos adjustments handle the reality that longitude lines get narrower near the poles.
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(lastKept.lat * Math.PI / 180) * Math.cos(current.lat * Math.PI / 180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    
+                    // Calculate the angular distance in radians traveling along the curved edge of the sphere.
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    
+                    // Multiply the curved angle slice (c) by the actual radius size of the planet (R) to get meters.
+                    const distance = R * c;
+                    
+                    // If the computed surface distance meets or exceeds 15 meters, approve and save this location.
+                    if (distance >= minDistanceThresholdMeters) {
+                        filteredPoints.push(current);
+                    }
+                }
+                
+                // Isolate the absolute last coordinate from the user's uploaded GPX data.
+                const absoluteLastPoint = points[points.length - 1];
+                // Double-check to make sure our final approved point matches the real destination endpoint.
+                if (filteredPoints[filteredPoints.length - 1] !== absoluteLastPoint) {
+                    if (filteredPoints.length === 1) {
+                        // If our filter wiped out every intermediate step, append the final destination safely.
+                        filteredPoints.push(absoluteLastPoint);
+                    } else {
+                        // Swap out the last element to guarantee the trip's finish line is exactly accurate.
+                        filteredPoints[filteredPoints.length - 1] = absoluteLastPoint;
+                    }
+                }
+            }
+
+            // ============================================================================
+            // PASS 2: GREEDY POLYLINE SIMPLIFICATION ENGINE
+            // Purpose: If the clean track is still over 25 points, compress it to 25 points.
+            // Instead of skipping points blindly, this scans for the biggest perpendicular
+            // deviations to prioritize and lock down coordinates where sharp turns occur.
+            // ============================================================================
+            
+            // Set our target ceiling constraint to 25 to guarantee modern Android Maps application stability.
+            const maxSafeCapacity = 25; 
+            // Create the definitive array that will be mapped directly into the URL query text.
+            let arrayToProcess = [];
+
+            // If our filtered track is still too detailed for Android, run the turn preservation algorithm.
+            if (filteredPoints.length > maxSafeCapacity) {
+                // Initialize an array holding approved array indices. We lock index 0 (Start) and the absolute final index (End).
+                let includedIndices = [0, filteredPoints.length - 1];
+
+                // Keep looping to locate and insert key turns until our approved array length reaches exactly 25.
+                while (includedIndices.length < maxSafeCapacity && includedIndices.length < filteredPoints.length) {
+                    // Global tracking variable to hold the highest deviation value found during this pass.
+                    let globalMaxDistSq = -1;
+                    // Global variable to remember the position index of the point that caused that worst deviation.
+                    let targetBestIndex = -1;
+
+                    // Loop through every consecutive pair of pinned milestones currently saved in our tracker.
+                    for (let s = 0; s < includedIndices.length - 1; s++) {
+                        // Establish index markers representing the start (idxA) and end (idxB) of a straight shortcut segment.
+                        const idxA = includedIndices[s];
+                        const idxB = includedIndices[s + 1];
+
+                        // Extract the physical latitude/longitude objects connected to those index markers.
+                        const pA = filteredPoints[idxA];
+                        const pB = filteredPoints[idxB];
+
+                        // Mercator Correction: Find the average latitude of this stretch and convert it to Radians.
+                        const latAvgRad = ((pA.lat + pB.lat) / 2) * Math.PI / 180;
+                        // Calculate a multiplier to compress longitude degrees based on how far we are from the equator.
+                        const cosLat = Math.cos(latAvgRad);
+
+                        // Flatten coordinates into a temporary local 2D grid workspace (using simple X and Y coordinates).
+                        const xA = pA.lon * cosLat;
+                        const yA = pA.lat;
+                        const xB = pB.lon * cosLat;
+                        const yB = pB.lat;
+
+                        // Calculate the relative vector components and length squared of our straight shortcut baseline line.
+                        const dx = xB - xA;
+                        const dy = yB - yA;
+                        const segmentLengthSq = dx * dx + dy * dy;
+
+                        // Scan through all the skipped, intermediate coordinates sitting between marker index A and index B.
+                        for (let k = idxA + 1; k < idxB; k++) {
+                            const pK = filteredPoints[k];
+                            // Apply the same local flattening math to the intermediate point we are evaluating.
+                            const xK = pK.lon * cosLat;
+                            const yK = pK.lat;
+
+                            let currentDeviationSq = 0;
+
+                            // If point A and point B are identical, calculate standard distance squared to avoid dividing by zero.
+                            if (segmentLengthSq === 0) {
+                                currentDeviationSq = (xK - xA) * (xK - xA) + (yK - yA) * (yK - yA);
+                            } else {
+                                // Linear Algebra Projection: Find the closest spot along line segment AB relative to point K.
+                                let projectionFactor = ((xK - xA) * dx + (yK - yA) * dy) / segmentLengthSq;
+                                // Clamp the projection factor between 0 and 1 so it doesn't wander off the ends of the segment.
+                                projectionFactor = Math.max(0, Math.min(1, projectionFactor));
+                                
+                                // Determine the absolute X/Y grid positions of that projected phantom location on the line.
+                                const projX = xA + projectionFactor * dx;
+                                const projY = yA + projectionFactor * dy;
+                                
+                                // Calculate the squared distance from our real track point K to that line shortcut.
+                                currentDeviationSq = (xK - projX) * (xK - projX) + (yK - projY) * (yK - projY);
+                            }
+
+                            // If this specific coordinate sticks out further than any other coordinate tested, crown it.
+                            if (currentDeviationSq > globalMaxDistSq) {
+                                globalMaxDistSq = currentDeviationSq;
+                                targetBestIndex = k;
+                            }
+                        }
+                    }
+
+                    // Once the full map is evaluated, take the absolute worst turn apex found and officially pin it down.
+                    if (targetBestIndex !== -1) {
+                        includedIndices.push(targetBestIndex);
+                        // Re-sort the index array numerically so our path connections always flow sequentially.
+                        includedIndices.sort((a, b) => a - b);
+                    } else {
+                        // If no valid remaining intermediate points can be evaluated, stop processing immediately.
+                        break; 
+                    }
+                }
+
+                // Map our optimized, sorted milestone index pointers back into the physical processing array.
+                arrayToProcess = includedIndices.map(idx => filteredPoints[idx]);
+                
+                // Update interface states to show downsampling compression took place.
+                badgeStatus.textContent = "High Density Compressed";
+                badgeStatus.className = "px-2 py-0.5 rounded-sm bg-amber-950 text-amber-400 border border-amber-800 text-[10px]";
+            } else {
+                // If the track contains fewer than 25 waypoints naturally, preserve the filtered track exactly as-is.
+                arrayToProcess = filteredPoints;
+                badgeStatus.textContent = "Full Track Contained";
+                badgeStatus.className = "px-2 py-0.5 rounded-sm bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px]";
+            }
+
+            // ============================================================================
+            // URL PACKAGING & INTERFACE SYNCHRONIZATION
+            // ============================================================================
+
+            // Standardize coordinates down to 5 fixed trailing decimal locations to clean out mathematical floating-point bloat.
+            // Join them all together with forward slashes to match the native Google Maps directions format.
+            const urlPayloadString = arrayToProcess
+                .map(p => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`)
+                .join('/');
+
+            // Target the very first point of our final route layout to use as our camera viewport context hint anchor.
+            const firstPoint = arrayToProcess[0];
+            // Format a trailing suffix matrix telling the app where to center and focus the map frame at zoom level 14.
+            const cameraHint = `/@${firstPoint.lat.toFixed(5)},${firstPoint.lon.toFixed(5)},14z`;
+
+            // Compile the data pieces into a complete, working Google Maps universal directional query URL.
+            const finalizedMapsUrl = `https://www.google.com/maps/dir/${urlPayloadString}${cameraHint}`;
+
+            // Inject the finalized URL into our screen textbox elements for copying.
+            urlOutputField.value = finalizedMapsUrl;
+            // Inject the finalized URL into our clickable desktop browser launch buttons.
+            btnLaunch.href = finalizedMapsUrl;
+
+            // Update UI telemetry grids to show detailed compression ratio changes to the user.
+            metaRaw.textContent = totalRawCount.toLocaleString();
+            metaMapped.textContent = arrayToProcess.length.toLocaleString();
+            metaLength.textContent = `${finalizedMapsUrl.length.toLocaleString()} ch`;
+
+            // Reveal the complete output block on-screen now that parsing computations are complete.
+            outputPanel.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
