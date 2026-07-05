@@ -46,11 +46,18 @@ Feel free to drop in your own `.gpx` tracks or use the built-in sample data sand
 
 ## 📦 Getting Started
 
-Because this project consists of a single standalone HTML document, setting it up is instant:
+Because this project consists of a single standalone HTML document, you can get started instantly using either of the following options:
 
+### Option 1: Use the GitHub-Hosted Version (Fastest)
+You can run the application directly from the web without downloading any files:
+👉 **[Open the Live App on GitHub Pages](https://geoff604.github.io/gpx-to-maps-multi-linker/gpxtomaps.html)**
+
+### Option 2: Run Locally on Your Machine
 1. Clone or download this repository.
 2. Open `gpxtomaps.html` directly in any modern desktop or mobile web browser (Chrome, Firefox, Safari, Edge).
-3. (Optional) Deploy the single file straight to GitHub Pages, Vercel, Netlify, or any static file host.
+3. (Optional) Deploy your own independent copy straight to GitHub Pages, Vercel, Netlify, or any static file host.
+
+---
 
 ## ⚙️ Core Technical Configurations
 
