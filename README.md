@@ -5,6 +5,23 @@ Convert high-density GPX tracking files into optimized, multi-stop Google Maps d
 
 A lightweight, high-performance, client-side web application designed to convert high-density GPX tracking files into optimized, multi-stop Google Maps directional routing URLs. Built entirely with vanilla JavaScript and styled using Tailwind CSS v4, this utility runs 100% locally in your browser with zero server dependencies or API keys required.
 
+---
+
+## 🌐 Try It Out Live
+
+The application is fully deployed and ready to use! You can access the interactive web interface directly here:
+
+👉 **[Launch GPX to Google Maps Multi-Linker](https://geoff604.github.io/gpx-to-maps-multi-linker/gpxtomaps.html)**
+
+### Why use the live app?
+* **Instant Conversion:** No installation, repository cloning, or local setup required.
+* **100% Secure & Private:** Your GPS tracking data stays entirely within your local browser cache and never uploads to an external server.
+* **Interactive Testing:** Easily toggle navigation modes and watch the telemetry panel update in real time.
+
+Feel free to drop in your own `.gpx` tracks or use the built-in sample data sandbox to see the greedy optimization engine in action!
+
+---
+
 ## 🚀 Features
 
 - **Zero Server Overhead:** All file reading, DOM parsing, and coordinate filtering are executed inside your local browser cache. Your tracking data never leaves your machine.
