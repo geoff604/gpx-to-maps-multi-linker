@@ -59,6 +59,37 @@ You can run the application directly from the web without downloading any files:
 
 ---
 
+## 🚲 How to Use with Strava (Activities & Routes)
+
+You can easily convert your tracked Strava activities or planned routes into optimized, shareable multi-stop Google Maps directions. This is especially useful for translating high-density fitness tracking files into reliable, turn-by-turn mobile navigation URLs.
+
+### Step 1: Export the GPX File from Strava
+
+Because mobile apps often restrict direct raw data downloads, it is easiest to export your files via a web browser:
+
+#### For a Past Activity:
+1. Log into your account at **[strava.com](https://www.strava.com)**.
+2. Navigate to **Training** > **My Activities** and click on the title of the specific activity you want to export.
+3. On the left side of the screen (under the map and activity stats), click the **ellipses / three-dot menu (`...`)**.
+4. Select **Export GPX** from the dropdown menu. The `.gpx` file will download automatically.
+
+#### For a Created Route:
+1. Go to **Dashboard** > **My Routes** on the Strava website.
+2. Click on the name of the route you want to export.
+3. Look for the down arrow/download option on the route profile panel and click **GPX**.
+
+---
+
+### Step 2: Drop into the Multi-Linker Application
+
+1. Open the live interactive app: 👉 **[Launch GPX to Google Maps Multi-Linker](https://geoff604.github.io/gpx-to-maps-multi-linker/gpxtomaps.html)**
+2. **Drag & drop** your newly downloaded Strava `.gpx` file directly into the drop zone (or use the standard file selection button).
+3. The dual-pass compression engine will instantly downsample Strava’s heavy 1Hz polling streams down to an optimized **25-point ceiling**. It preserves critical route apexes while ensuring full compatibility with mobile Google Maps frameworks.
+4. Check or uncheck the **Cycling Directions** toggle depending on whether your Strava data was a bike ride or a run/walk.
+5. Copy the generated URL from the telemetry panel or open it directly to sync the multi-stop navigation route seamlessly to your mobile device!
+
+---
+
 ## ⚙️ Core Technical Configurations
 
 If you want to modify the internal behaviors of the conversion script, look for these variables inside the script block:
