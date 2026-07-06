@@ -35,7 +35,7 @@ Feel free to drop in your own `.gpx` tracks or use the built-in sample data sand
 
 ## 🚀 Features
 
-- **Zero Server Overhead:** All file reading, DOM parsing, and coordinate filtering are executed inside your local browser cache. Your tracking data never leaves your machine.
+- **Zero Server Overhead:** All file reading, GPX XML DOM parsing, and coordinate filtering are executed inside your local browser and only stored in its local cache. Your tracking data never leaves your machine.
 - **Smart Downsampling Core:**
   - **Distance Proximity Filter:** Uses the Haversine formula to calculate true surface distances, discarding intermediate tracking jitter and static data noise (e.g., waiting at traffic lights) under 15 meters.
   - **Greedy Polyline Simplification Engine:** Automatically optimizes routes exceeding Google Maps' limits down to a stable 25-point ceiling. It identifies and preserves critical turn apexes and sharp directional shifts instead of blindly dropping points.
