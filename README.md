@@ -27,7 +27,7 @@ The application is fully deployed and ready to use! You can access the interacti
 ### Why use the live app?
 * **Instant Conversion:** No installation, repository cloning, or local setup required.
 * **100% Secure & Private:** Your GPS tracking data stays entirely within your local browser cache and never uploads to an external server.
-* **Interactive Testing:** Easily toggle navigation modes and watch the telemetry panel update in real time.
+* **Interactive Testing:** Easily drop in new GPX files or toggle navigation modes and watch the telemetry panel and Maps link update in real time.
 
 Feel free to drop in your own `.gpx` tracks or use the built-in sample data sandbox to see the greedy optimization engine in action!
 
@@ -39,8 +39,8 @@ Feel free to drop in your own `.gpx` tracks or use the built-in sample data sand
 - **Smart Downsampling Core:**
   - **Distance Proximity Filter:** Uses the Haversine formula to calculate true surface distances, discarding intermediate tracking jitter and static data noise (e.g., waiting at traffic lights) under 15 meters.
   - **Greedy Polyline Simplification Engine:** Automatically optimizes routes exceeding Google Maps' limits down to a stable 25-point ceiling. It identifies and preserves critical turn apexes and sharp directional shifts instead of blindly dropping points.
-- **Flexible Navigation Modes:** Includes a responsive UI checkbox (defaults to checked) that automatically appends transit parameters to enforce Cycling/Bike directions.
-- **Real-time Synchronization:** Toggling the routing mode instantly recalibrates and regenerates the active payload without forcing you to re-upload your `.gpx` file.
+- **Flexible Navigation Modes:** Includes a checkbox for "Default to Cycling/Bike directions" that automatically appends transit parameters to enforce Cycling/Bike directions.
+- **On-the-Fly Customization:** Easily switch between cycling and standard directions to adapt the path to your specific workout, updating your navigation link instantly without forcing a re-upload.
 - **Telemetry UI Panel:** Provides immediate feedback showing:
   - Total raw coordinate points imported.
   - Compressed URL routing segments utilized.
@@ -52,7 +52,7 @@ Feel free to drop in your own `.gpx` tracks or use the built-in sample data sand
 1. **Upload:** Drag & drop a `.gpx` file or use the standard file selection dialog.
 2. **Parsing:** The application extracts standard coordinate tracking components (`<trkpt>`, `<rtept>`, or `<wpt>`).
 3. **Filtering:** Points within 15 meters of the last approved marker are stripped.
-4. **Compression:** If the coordinate count remains above 25, an interactive perpendicular deviation check identifies the most critical vector corners until exactly 25 sequential stops remain, securing full compatibility with mobile Google Maps application frameworks.
+4. **Compression:** If the coordinate count remains above 25, an iterative perpendicular deviation check identifies the most critical vector corners until exactly 25 sequential stops remain, securing full compatibility with mobile Google Maps application frameworks.
 5. **Output:** A customized directional multi-stop URL is assembled alongside camera coordinate hints focused directly over your route's origin.
 
 ## 📦 Getting Started
