@@ -7,6 +7,17 @@ A lightweight, high-performance, client-side web application designed to convert
 
 ---
 
+### 📝 Note from the Author
+
+> Dear colleagues, friends, and fellow professionals,
+>
+> I am an avid commuter cyclist (love my ebike) and I also use Strava for tracking my walking, running, and riding using a GPS and smart watch. However, one issue I found is that when going to a destination that I haven't been to before, is finding a safe route for cycling. Strava has a great Heatmap feature, showing the roads that cyclists often travel on, and they provide a way to build a route (if you are a paid Strava member). However, I prefer to use Google Maps for turn-by-turn directions - but Google Maps' cycling routes often are not optimal and sometimes are even unsafe. So I figured, there must be an easy way to turn a Strava Route into a Google Maps route. There are some paid, commercial sites that can do this for a fee, but I figured, I have a few hours, I might as well try to write my own. The result is my new open source project/web app, called "gpx-to-maps-multi-linker". I made it free to use and under MIT license, so you can modify it, enhance it, or combine it with your own app. Feel free to check it out below - and comments appreciated!
+>
+> Cheers,  
+> Geoff
+
+---
+
 ## 🌐 Try It Out Live
 
 The application is fully deployed and ready to use! You can access the interactive web interface directly here:
